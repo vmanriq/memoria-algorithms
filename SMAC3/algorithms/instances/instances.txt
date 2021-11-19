@@ -1,0 +1,11 @@
+../instances/training/gk01.dat
+../instances/training/hp1.dat
+../instances/training/pb6.dat
+../instances/training/pet5.dat
+../instances/training/pet7.dat
+../instances/training/weing1.dat
+../instances/training/weing8.dat
+../instances/training/weish08.dat
+../instances/training/weish09.dat
+../instances/training/weish15.dat
+../instances/training/weish27.dat

@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 env/
 *smac3-output_*
+SMAC3/algorithms/ilsmkp/instances/
