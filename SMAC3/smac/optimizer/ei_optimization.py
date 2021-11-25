@@ -717,6 +717,7 @@ class ChallengerList(Iterator):
             return config
         else:
             if self.random_configuration_chooser.check(self._iteration):
+                print("Se eligio una Random")
                 config = self.configuration_space.sample_configuration()
                 config.origin = 'Random Search'
             else:
