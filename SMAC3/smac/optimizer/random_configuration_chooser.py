@@ -122,8 +122,10 @@ class ChooserProb(RandomConfigurationChooser):
 
     def check(self, iteration: int) -> bool:
         if self.rng.rand() < self.prob:
+            print("Se eligio una random")
             return True
         else:
+            print("Se eligio uno de la cola")
             return False
 
 
