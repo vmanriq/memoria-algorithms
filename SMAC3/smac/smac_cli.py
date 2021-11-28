@@ -116,7 +116,11 @@ class SMACCLI(object):
                 initial_configurations=initial_configs,
                 stats=stats,
                 restore_incumbent=incumbent,
-                run_id=main_args_.seed)
+                run_id=main_args_.seed,
+                opposite_learning_flag=main_args_.OL,
+                prob_decay=main_args_.prob_decay,
+                budget_prob_0=main_args_.budget_prob_0
+                )
         elif main_args_.mode == "SMAC4HPO":
             optimizer = SMAC4HPO(
                 scenario=scen,

@@ -95,12 +95,11 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
             configs = [config[1] for config in configs]
             configs_descartadas = [config[1] for config in configs_descartadas]
             return [configs, configs_descartadas]
-        
         challengers = ChallengerList(next_configs_by_acq_value,
                                      self.config_space,
-                                     random_configuration_chooser)
+                                     random_configuration_chooser, self.opposite_learning_flag)
         if random_configuration_chooser is not None:
-            random_configuration_chooser.next_smbo_iteration()
+            random_configuration_chooser.next_smbo_iteration(stats.get_used_ta_budget_percentage())
         return challengers
 
     @abc.abstractmethod
@@ -237,12 +236,12 @@ class LocalSearch(AcquisitionFunctionMaximizer):
         configs_acq = self._do_search(init_points)
 
         # shuffle for random tie-break
-        self.rng.shuffle(configs_acq)
+        self.rng.shuffle(configs_acq[0])
 
         # sort according to acq value
         configs_acq[0].sort(reverse=True, key=lambda x: x[0])
-
-        configs_acq[1].sort(reverse=False, key=lambda x: x[0])
+        #descartadas
+        #configs_acq[1].sort(reverse=True, key=lambda x: x[0])
 
         for _, inc in configs_acq[0]:
             inc.origin = 'Local Search'
@@ -638,7 +637,8 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             rng: Union[bool, np.random.RandomState] = None,
             max_steps: Optional[int] = None,
             n_steps_plateau_walk: int = 10,
-            n_sls_iterations: int = 10
+            n_sls_iterations: int = 10,
+            opposite_learning_flag: bool = False,
 
     ):
         super().__init__(acquisition_function, config_space, rng)
@@ -655,6 +655,7 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             n_steps_plateau_walk=n_steps_plateau_walk
         )
         self.n_sls_iterations = n_sls_iterations
+        self.opposite_learning_flag = opposite_learning_flag
 
     def _maximize(
         self,
@@ -714,6 +715,7 @@ class ChallengerList(Iterator):
         challenger_callback: Callable,
         configuration_space: ConfigurationSpace,
         random_configuration_chooser: Optional[RandomConfigurationChooser] = ChooserNoCoolDown(2.0),
+        opposite_learning_flag: bool = False,
     ):
         self.challengers_callback = challenger_callback
         self.challengers = None  # type: Optional[List[Configuration]]
@@ -722,8 +724,10 @@ class ChallengerList(Iterator):
         self._index = 0
         self._iteration = 1  # 1-based to prevent from starting with a random configuration
         self.random_configuration_chooser = random_configuration_chooser
+        self.OL = opposite_learning_flag
 
     def __next__(self) -> Configuration:
+        print(self._iteration)
         if self.challengers is not None and self._index == len(self.challengers):
             raise StopIteration
         elif self.random_configuration_chooser is None:
@@ -734,13 +738,12 @@ class ChallengerList(Iterator):
             self._index += 1
             return config
         else:
-            if self.random_configuration_chooser.check(self._iteration):
-                if self.descartadas != None:
-                    config = next(self.descartadas)
-                    print('Se utiliza una descartada')
-                else:
-                    config = self.configuration_space.sample_configuration()
-                    config.origin = 'Random Search'
+            if self.descartadas != None and self.OL and self.random_configuration_chooser.check_annealing():
+                config = next(self.descartadas)
+                print('Se utiliza una descartada')
+            elif self.random_configuration_chooser.check(self._iteration):
+                config = self.configuration_space.sample_configuration()
+                config.origin = 'Random Search'
                 
             else:
                 if self.challengers is None:
