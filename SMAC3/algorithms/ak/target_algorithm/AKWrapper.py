@@ -49,9 +49,8 @@ if __name__ == '__main__':
     ph_max = sys.argv[13]
     ph_min = sys.argv[15]
     rho = sys.argv[17]
-    TOTAL_EVAL = '3000'
+    TOTAL_EVAL = '1000'
     cmd = ['./target_algorithm/AK', instance, seed, ants , TOTAL_EVAL, alpha, beta, ph_max, ph_min, rho, '0', '0', '0', '0', '0', '0', '0', '0']
-    print('executing', ' '.join(cmd))
     io = Popen(cmd, stdout=PIPE)
     out_, err_ = io.communicate()
     result = out_.decode("utf-8").strip()
