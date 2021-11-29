@@ -234,20 +234,19 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         init_points = self._get_initial_points(num_points, runhistory, additional_start_points)
         configs_acq = self._do_search(init_points)
-
         # shuffle for random tie-break
         self.rng.shuffle(configs_acq[0])
 
         # sort according to acq value
         configs_acq[0].sort(reverse=True, key=lambda x: x[0])
         #descartadas
-        #configs_acq[1].sort(reverse=True, key=lambda x: x[0])
+        configs_acq[1].sort(reverse=True, key=lambda x: x[0])
+        len_descartadas = len(configs_acq[1])
+        configs_acq[1][:len_descartadas], configs_acq[1][len_descartadas:] = configs_acq[1][len_descartadas:], configs_acq[1][:len_descartadas] 
+        #self.rng.shuffle(configs_acq[1])
 
         for _, inc in configs_acq[0]:
             inc.origin = 'Local Search'
-        
-        for _, inc in configs_acq[1]:
-            inc.origin = 'Descartada'
 
         return configs_acq
 
@@ -740,16 +739,18 @@ class ChallengerList(Iterator):
         else:
             if self.descartadas != None and self.OL and self.random_configuration_chooser.check_annealing():
                 config = next(self.descartadas)
-                print('Se utiliza una descartada')
+                config.origin = 'Descartada'
+                print('se utiliza una descartada')
             elif self.random_configuration_chooser.check(self._iteration):
                 config = self.configuration_space.sample_configuration()
                 config.origin = 'Random Search'
-                
+                print('se utiliza una random')
             else:
                 if self.challengers is None:
                     self.challengers, self.descartadas = self.challengers_callback()
                     self.descartadas = iter(self.descartadas)
                 config = self.challengers[self._index]
+                print('se utiliza una de Local Search')
                 self._index += 1
             self._iteration += 1
             return config

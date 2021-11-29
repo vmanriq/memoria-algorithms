@@ -7,7 +7,7 @@ import os
 SEED = 3
 NUMBER_OF_SEEDS = 5
 ALGORITHM = '/home/manriq/Documents/universidad/TT/tunners/SMAC3/algorithms/ak/target_algorithm/AK'
-INSTANCE_FOLDER = '/home/manriq/Documents/universidad/TT/tunners/SMAC3/algorithms/instances/testing/testingWeish'
+INSTANCE_FOLDER = '/home/manriq/Documents/universidad/TT/tunners/SMAC3/algorithms/instances/testing/testingEasy'
 
 random.seed(SEED)
 
@@ -48,7 +48,7 @@ def evaluate_params(algorithm, instance_folder, seeds_number, params):
 
 #dic_params = params_to_dict(output_smac)
 
-param_values = [{'alpha':'6', 'ants': '30', 'beta': '4.5', 'ph-max': '6', 'ph-min': '0.01', 'rho': '0.01'}]
+param_values = [{'alpha':'3.5', 'ants': '8', 'beta': '6.1', 'ph-max': '6.8', 'ph-min': '0.01', 'rho': '0.6'}]
 
 for params in param_values:
     print(f"Parámetros obtenidos por SMAC {params}")
