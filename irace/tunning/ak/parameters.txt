@@ -1,0 +1,7 @@
+# name    switch     type    values
+ants      "--ants "    i       (2,50)
+alpha	  "--alpha "   r       (1, 10)
+beta      "--beta "    r	      (1,10)
+phMax    "--phMax "  r       (1,10)
+phMin    "--phMin "  c       (0.01)
+rho       "--rho "     r       (0.1,1)
