@@ -1126,6 +1126,9 @@ race <- function(maxExp = 0,
   configurations$.ALIVE. <- as.logical(alive)
   # Assign the proper ranks in the configurations data.frame.
   configurations$.RANK. <- Inf
+  cat("Configuraciones eliminadas: ")
+  cat(sum(!configurations$.ALIVE., na.rm = TRUE))
+  cat("\n")
   configurations[which.alive, ".RANK."] <- race.ranks
   # Now we can sort the data.frame by the rank.
   configurations <- configurations[order(as.numeric(configurations[, ".RANK."])), ]

@@ -34,9 +34,10 @@ digits = 1
 
 ## A value of 0 silences all debug messages. Higher values provide
 ## more verbose debug messages.
-debugLevel = 4
+debugLevel = 2
 
 targetRunner = "target-runner.py"
+seed = 3321
 
 trainInstancesFile = "trainInstancesEasy.txt"
 

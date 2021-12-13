@@ -129,7 +129,7 @@
 "testInstances", "testNbElites", "testIterationElites", "elitist", 
 "elitistNewInstances", "elitistLimit", "repairConfiguration", 
 "capping", "cappingType", "boundType", "boundMax", "boundDigits", 
-"boundPar", "boundAsTimeout", "postselection", "aclib")
+"boundPar", "boundAsTimeout", "postselection", "aclib", "OL")
 ## FIXME: If these values are special perhaps they should be saved in $state ?
 .irace.params.recover <- c("instances", "seed", "testInstances",
                            # We need this because this data may mutate

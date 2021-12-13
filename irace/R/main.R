@@ -131,7 +131,9 @@ irace.main <- function(scenario = defaultScenario(), output.width = 9999L)
                                 digits = scenario$digits,
                                 debugLevel = debug.level)
 						
-  if (debug.level >= 2) { irace.note("Parameters have been read\n") }
+  if (debug.level >= 2) { irace.note("Parameters have been read NASHE\n") }
+
+  cat("Opposite Learning es ", scenario$OL, "\n")
   
   eliteConfigurations <- irace (scenario = scenario, parameters = parameters)
   
