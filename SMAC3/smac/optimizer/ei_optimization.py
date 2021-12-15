@@ -4,7 +4,7 @@ import itertools
 import logging
 import time
 import numpy as np
-
+import numbers
 from typing import List, Union, Tuple, Optional, Set, Iterator, Callable
 
 from smac.configspace import (
@@ -240,15 +240,22 @@ class LocalSearch(AcquisitionFunctionMaximizer):
         # sort according to acq value
         configs_acq[0].sort(reverse=True, key=lambda x: x[0])
         #descartadas
-        configs_acq[1].sort(reverse=True, key=lambda x: x[0])
-        len_descartadas = len(configs_acq[1])
-        configs_acq[1][:len_descartadas], configs_acq[1][len_descartadas:] = configs_acq[1][len_descartadas:], configs_acq[1][:len_descartadas] 
+        configs_acq[1].sort(key=lambda x: x[0])
+        # threshold
+        threshold = float(configs_acq[0][-1][0]) 
+        factor = 0.80
+        filtered_descartadas = filter(lambda candidato: self._filter_aux(candidato[0], threshold*factor), configs_acq[1])
+        configs_acq[1] = list(filtered_descartadas)
+        #configs_acq[1][:len_descartadas], configs_acq[1][len_descartadas:] = configs_acq[1][len_descartadas:], configs_acq[1][:len_descartadas] 
         #self.rng.shuffle(configs_acq[1])
 
         for _, inc in configs_acq[0]:
             inc.origin = 'Local Search'
 
         return configs_acq
+    
+    def _filter_aux(self, value, range):
+        return bool(value > range)
 
     def _get_initial_points(
         self,
@@ -741,7 +748,7 @@ class ChallengerList(Iterator):
                 config = next(self.descartadas)
                 config.origin = 'Descartada'
                 print('se utiliza una descartada')
-            elif self.random_configuration_chooser.check(self._iteration):
+            elif self.random_configuration_chooser.check(self._iteration) and not self.OL:
                 config = self.configuration_space.sample_configuration()
                 config.origin = 'Random Search'
                 print('se utiliza una random')

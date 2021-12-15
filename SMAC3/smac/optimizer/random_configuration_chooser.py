@@ -121,13 +121,15 @@ class ChooserProb(RandomConfigurationChooser):
         self.iteration_count = 0
         self.budget_prob_0 = budget_prob_0
     def next_smbo_iteration(self, used_ta_budget_percentage: float) -> None:
-        print(f"El porcentaje utilizado es {used_ta_budget_percentage} y la probabilidad {self.prob_sa}")
-        if used_ta_budget_percentage >= self.budget_prob_0:
-            self.prob_sa = 0
-        else:
-            self.prob_sa = self.prob_sa * self.decay
-
+        #print(f"El porcentaje utilizado es {used_ta_budget_percentage} y la probabilidad {self.prob_sa}")
+        #if used_ta_budget_percentage >= self.budget_prob_0:
+          #  self.prob_sa = 0
+        #else:
+         #   self.prob_sa = self.prob_sa * self.decay
+        return 
     def check_annealing(self) -> bool:
+        self.prob_sa = self.prob_sa * self.decay
+        print(f"La probabilidad de sa es {self.prob_sa}")
         return self.rng.rand() < self.prob_sa
          
 
