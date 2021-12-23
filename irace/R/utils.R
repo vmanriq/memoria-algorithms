@@ -477,6 +477,28 @@ merge.matrix <- function(x, y)
   return(x)
 }
 
+selectDroppedConfig <- function(configurations) {
+  if(all(configurations$.ALIVE.)){
+    return (NA)
+  }
+  which.dropped <- which(!configurations$.ALIVE.)
+  dropped <- configurations[which.dropped, , drop = FALSE]
+  normalized.dropped.ranks <- dropped$.RANK. / max(dropped$.RANK.)
+  sum.ranks <- sum(normalized.dropped.ranks)
+  dropped.prob <- (normalized.dropped.ranks / sum.ranks)
+  indexSeletedDropped <- sample.int (n = nrow(dropped), size = 1, prob = dropped.prob)
+  selected <- dropped[indexSeletedDropped, , drop = FALSE]
+  return (selected)
+}
+
+roulette <- function(configurations) {
+  normalized.ranks <- configurations$.RANK. / max(configurations$.RANK.)
+  sum.ranks <- sum(normalized.ranks)
+  prob <- normalized.ranks/ sum.ranks
+  indexSelected <- sample.int( n = nrow(configurations), size = 1, prob = prob)
+  return (indexSelected)
+}
+
 ## extractElites
 # Input: the configurations with the .RANK. field filled.
 #        the number of elites wished
@@ -490,6 +512,9 @@ extractElites <- function(configurations, nbElites)
   # Sort by rank.
   elites <- configurations[order(as.numeric(configurations$.RANK.)), , drop = FALSE]
   elites <- elites[1:nbElites, , drop = FALSE]
+  # reemplazar elite
+  
+  
   elites[, ".WEIGHT."] <- ((nbElites - (1:nbElites) + 1)
                            / (nbElites * (nbElites + 1) / 2))
   return (elites)
@@ -537,6 +562,7 @@ removeConfigurationsMetaData <- function(configurations)
 #' @export
 configurations.print <- function(configurations, metadata = FALSE)
 {
+
   rownames(configurations) <- configurations$.ID.
   if (!metadata) {
     configurations <- removeConfigurationsMetaData(configurations)

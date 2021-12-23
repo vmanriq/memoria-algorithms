@@ -984,18 +984,18 @@ irace <- function(scenario, parameters)
       # Update the model based on elites configurations
       if (debugLevel >= 1) { irace.note("Update model\n") }
       model <- updateModel(parameters, eliteConfigurations, model, indexIteration,
-                           nbIterations, nbNewConfigurations, scenario)
+                           nbIterations, nbNewConfigurations, scenario, opositeConfiguration)
       if (debugLevel >= 2) { printModel (model) }
       
       if (debugLevel >= 1) {
         irace.note("Sample ", nbNewConfigurations, " configurations from model\n")
       }
-      newConfigurations <- sampleModel(parameters, eliteConfigurations,
-                                       model, nbNewConfigurations,
+      configurationsSample <- injectOpposite(eliteConfigurations, opositeConfiguration)
+      newConfigurations <- sampleModel(parameters, configurationsSample,
+                                       model, nbNewConfigurations, indexIteration, scenario$OL,
                                        digits = scenario$digits,
                                        forbidden = forbiddenExps,
                                        repair = scenario$repairConfiguration)
-
       # Set ID of the new configurations.
       newConfigurations <- cbind (.ID. = max(0, allConfigurations$.ID.) +
                                     1:nrow(newConfigurations), newConfigurations)
@@ -1020,7 +1020,7 @@ irace <- function(scenario, parameters)
           # Re-sample after restart like above
           #cat("# ", format(Sys.time(), usetz=TRUE), " sampleModel()\n")
           newConfigurations <- sampleModel(parameters, eliteConfigurations,
-                                           model, nbNewConfigurations,
+                                           model, nbNewConfigurations, indexIteration,
                                            digits = scenario$digits,
                                            forbidden = forbiddenExps,
                                            repair = scenario$repairConfiguration)
@@ -1118,6 +1118,8 @@ irace <- function(scenario, parameters)
     # would reduce overhead.
     eliteConfigurations <- extractElites(raceResults$configurations,
                                          min(raceResults$nbAlive, minSurvival))
+    
+    opositeConfiguration <- selectDroppedConfig(raceResults$configurations)
     irace.note("Elite configurations (first number is the configuration ID;",
                " listed from best to worst according to the ",
                test.type.order.str(scenario$testType), "):\n")
@@ -1127,7 +1129,7 @@ irace <- function(scenario, parameters)
     
     if (firstRace) {
       if (debugLevel >= 1)  { irace.note("Initialise model\n") }
-      model <- initialiseModel(parameters, eliteConfigurations, scenario$digits)
+      model <- initialiseModel(parameters, eliteConfigurations, scenario$digits, opositeConfiguration)
     }
       
     if (debugLevel >= 1) {

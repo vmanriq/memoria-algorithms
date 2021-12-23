@@ -1110,9 +1110,10 @@ race <- function(maxExp = 0,
   # If we stop the loop before we see all new instances, there may be new
   # instances that have not been executed by any configuration.
   Results <- Results[apply(!is.na(Results), 1, any), , drop = FALSE]
-  
-  race.ranks <- overall.ranks(Results[, alive, drop = FALSE], stat.test = stat.test)
-  best <- which.alive[which.min(race.ranks)]
+  #browser()
+  race.ranks <- overall.ranks(Results, stat.test = stat.test)
+  #dropped_ranks <- overall.ranks(Results[,!alive, drop = FALSE], stat.test = stat.test)
+  best <- which.alive[which.min(race.ranks[alive])]
 
   race.print.footer(bestconf = configurations[best, , drop = FALSE],
                     # FIXME: This is the mean of the best, but perhaps it
@@ -1129,7 +1130,7 @@ race <- function(maxExp = 0,
   cat("Configuraciones eliminadas: ")
   cat(sum(!configurations$.ALIVE., na.rm = TRUE))
   cat("\n")
-  configurations[which.alive, ".RANK."] <- race.ranks
+  configurations[".RANK."] <- race.ranks
   # Now we can sort the data.frame by the rank.
   configurations <- configurations[order(as.numeric(configurations[, ".RANK."])), ]
   # Consistency check.

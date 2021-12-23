@@ -15,6 +15,8 @@ execDir = "./"
 ## relative to current directory.
 trainInstancesDir = "./../Instances"
 
+testInstancesDir = "./../Instances/testingEasy"
+
 ## The maximum number of runs (invocations of targetRunner) that will performed. It
 ## determines the (maximum) budget of experiments for the tuning.
 maxExperiments = 1000
@@ -37,9 +39,15 @@ digits = 1
 debugLevel = 2
 
 targetRunner = "target-runner.py"
-seed = 3321
+seed = 1
 
+OL = FALSE
 trainInstancesFile = "trainInstancesEasy.txt"
+testInstancesFile = "testingInstancesEasy.txt"
+
+testIterationElites = 0
+testNbElites = 1
+
 
 ## END of scenario file
 ############################################################################

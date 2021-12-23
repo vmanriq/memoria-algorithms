@@ -10,9 +10,10 @@
 # one element per categorical parameter.  Each categorical parameter
 # contains a list of vector. This list contains elements which are the
 # .ID. of the configuration. 
-initialiseModel <- function (parameters, configurations, digits)
+initialiseModel <- function (parameters, configurations, digits, opositeConfiguration)
 {
   model <- list()
+  configurations <- injectOpposite(configurations, opositeConfiguration)
   nbConfigurations <- nrow(configurations)
   
   for (currentParameter in parameters$names[!parameters$isFixed]) {
@@ -40,13 +41,31 @@ initialiseModel <- function (parameters, configurations, digits)
   return (model)
 }
 
+## Inject configuracion dropeada para permitir que genere hijos
+
+injectOpposite <- function(eliteConfigurations, opositeConfiguration){
+  ## si no hay eliminadas se devulve la elite
+  if( is.na(opositeConfiguration)){
+    return (eliteConfigurations)
+  }
+  #si hay eliminadas se agrega la configuracion opuesta
+  else {
+    opositeConfiguration[, ".WEIGHT."] <- 0
+    newElites <- rbind(eliteConfigurations, opositeConfiguration)
+    #nbNewElites <- nrow(newElites)
+    #newElites[, ".WEIGHT."] <- ((nbNewElites - (1:nbNewElites) + 1)
+    #                       / (nbNewElites * (nbNewElites + 1) / 2))
+    return (newElites)
+  }
+}
+
 ## FIXME (MANUEL): This function needs a description.
 ## Update the model 
 updateModel <- function (parameters, eliteConfigurations, oldModel,
-                         indexIteration, nbIterations, nbNewConfigurations, scenario)
+                         indexIteration, nbIterations, nbNewConfigurations, scenario, opositeConfiguration)
 {
   newModel <- list()
-  
+  eliteConfigurations <- injectOpposite(eliteConfigurations, opositeConfiguration)
   for (idxConfiguration in seq_len(nrow(eliteConfigurations))) {
     idCurrentConfiguration <- eliteConfigurations[idxConfiguration, ".ID."]
     idCurrentConfiguration <- as.character(idCurrentConfiguration)
