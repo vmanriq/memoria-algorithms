@@ -101,12 +101,13 @@ sampleUniform <- function (parameters, nbConfigurations, digits,
 # 2) Nb configurations is the number of configurations at the end
 # included the elite ones obtained from the previous iteration
 sampleModel <- function (parameters, eliteConfigurations, model,
-                         nbNewConfigurations, digits, forbidden = NULL,
+                         nbNewConfigurations, scenario, indexIteration, nbIterations, oppositeConfig, digits, forbidden = NULL,
                          repair = NULL)
 {
   if (nbNewConfigurations <= 0) {
     irace.error ("The number of configurations to generate appears to be negative or zero.")
   }
+  eliteConfigurations <- rbind(eliteConfigurations ,oppositeConfig)
   namesParameters <- names(parameters$conditions)
   newConfigurations  <-
     as.data.frame(matrix(nrow = nbNewConfigurations,
@@ -119,8 +120,16 @@ sampleModel <- function (parameters, eliteConfigurations, model,
     forbidden.retries <- 0
     while (forbidden.retries < 100) {
       # Choose the elite which will be the parent.
-      indexEliteParent <- sample.int (n = nrow(eliteConfigurations), size = 1,
+      if( scenario$OL && (idxConfiguration < floor(0.3/(indexIteration-1) * nbNewConfigurations)) && nrow(eliteConfigurations) > 4) {
+        indexEliteParent <- 5
+      }
+      else {
+        indexEliteParent <- sample.int (n = nrow(eliteConfigurations), size = 1,
                                       prob = eliteConfigurations[[".WEIGHT."]])
+      }
+      if (indexEliteParent == 5){
+        print('Se utilizo una descartada como padre')
+      }
       eliteParent <- eliteConfigurations[indexEliteParent, ]
       idEliteParent <- eliteParent[[".ID."]]
       configuration <- empty.configuration

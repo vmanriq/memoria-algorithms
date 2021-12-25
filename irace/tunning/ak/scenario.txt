@@ -38,7 +38,8 @@ debugLevel = 4
 
 targetRunner = "target-runner.py"
 
-trainInstancesFile = "trainInstancesEasy.txt"
+trainInstancesFile = "trainInstancesHard.txt"
 
+seed = 1
 ## END of scenario file
 ############################################################################

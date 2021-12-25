@@ -984,7 +984,7 @@ irace <- function(scenario, parameters)
       # Update the model based on elites configurations
       if (debugLevel >= 1) { irace.note("Update model\n") }
       model <- updateModel(parameters, eliteConfigurations, model, indexIteration,
-                           nbIterations, nbNewConfigurations, scenario)
+                           nbIterations, nbNewConfigurations, scenario, oppositeConfig)
       if (debugLevel >= 2) { printModel (model) }
       
       if (debugLevel >= 1) {
@@ -992,6 +992,10 @@ irace <- function(scenario, parameters)
       }
       newConfigurations <- sampleModel(parameters, eliteConfigurations,
                                        model, nbNewConfigurations,
+                                       scenario = scenario,
+                                       indexIteration = indexIteration, 
+                                       nbIterations = nbIterations, 
+                                       oppositeConfig = oppositeConfig,
                                        digits = scenario$digits,
                                        forbidden = forbiddenExps,
                                        repair = scenario$repairConfiguration)
@@ -1021,6 +1025,10 @@ irace <- function(scenario, parameters)
           #cat("# ", format(Sys.time(), usetz=TRUE), " sampleModel()\n")
           newConfigurations <- sampleModel(parameters, eliteConfigurations,
                                            model, nbNewConfigurations,
+                                           scenario = scenario,
+                                           indexIteration = indexIteration, 
+                                           nbIterations = nbIterations, 
+                                           oppositeConfig = oppositeConfig,
                                            digits = scenario$digits,
                                            forbidden = forbiddenExps,
                                            repair = scenario$repairConfiguration)
@@ -1125,9 +1133,11 @@ irace <- function(scenario, parameters)
     iraceResults$iterationElites <- c(iraceResults$iterationElites, eliteConfigurations$.ID.[1])
     iraceResults$allElites[[indexIteration]] <- eliteConfigurations$.ID.
     
+    oppositeConfig <- selectOpposite(eliteConfigurations, raceResults$configurations)
+
     if (firstRace) {
       if (debugLevel >= 1)  { irace.note("Initialise model\n") }
-      model <- initialiseModel(parameters, eliteConfigurations, scenario$digits)
+      model <- initialiseModel(parameters, eliteConfigurations, scenario$digits, oppositeConfig)
     }
       
     if (debugLevel >= 1) {
