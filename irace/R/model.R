@@ -1,3 +1,25 @@
+
+# Función que elije una configuración descartada y la agrega  las elites
+# para permitir que aparezca en el modelo y asi considerarla para tener hijos
+#
+#OUTPUT: configuraciones elite + configuracion descartada seleccionada 
+
+selectOpposite <- function(elites, allConfigs) {
+  dropped <- allConfigs[-(1:nrow(elites)), , drop=FALSE]
+  dropped <- allConfigs[allConfigs$.ALIVE. == TRUE, , drop=FALSE]
+  lastEliteValue <- tail(elites, 1)$.RANK.
+  threshold <- lastEliteValue * 1.5
+  filteredDropped <- dropped[allConfigs$.RANK. < threshold, , drop=FALSE]
+  selectedConfig <- filteredDropped[sample(1:nrow(filteredDropped), 1), , drop=FALSE]
+  selectedConfig$.WEIGHT. <- 0
+  return (selectedConfig)
+}
+
+
+
+
+
+
 ####################################################
 ## INITIALISE AND UPDATE THE MODEL
 ####################################################
@@ -10,11 +32,11 @@
 # one element per categorical parameter.  Each categorical parameter
 # contains a list of vector. This list contains elements which are the
 # .ID. of the configuration. 
-initialiseModel <- function (parameters, configurations, digits)
+initialiseModel <- function (parameters, configurations, digits, oppositeConfig)
 {
   model <- list()
+  configurations <- rbind(configurations, oppositeConfig)
   nbConfigurations <- nrow(configurations)
-  
   for (currentParameter in parameters$names[!parameters$isFixed]) {
     type <- parameters$types[[currentParameter]]
     nbValues <- length(parameters$domain[[currentParameter]])
@@ -43,9 +65,10 @@ initialiseModel <- function (parameters, configurations, digits)
 ## FIXME (MANUEL): This function needs a description.
 ## Update the model 
 updateModel <- function (parameters, eliteConfigurations, oldModel,
-                         indexIteration, nbIterations, nbNewConfigurations, scenario)
+                         indexIteration, nbIterations, nbNewConfigurations, scenario, oppositeConfig)
 {
   newModel <- list()
+  eliteConfigurations <- rbind(eliteConfigurations, oppositeConfig)
   
   for (idxConfiguration in seq_len(nrow(eliteConfigurations))) {
     idCurrentConfiguration <- eliteConfigurations[idxConfiguration, ".ID."]
