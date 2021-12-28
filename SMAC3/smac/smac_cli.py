@@ -118,6 +118,7 @@ class SMACCLI(object):
                 restore_incumbent=incumbent,
                 run_id=main_args_.seed,
                 opposite_learning_flag=main_args_.OL,
+                filter_thresh=main_args_.filter,
                 prob_decay=main_args_.prob_decay,
                 budget_prob_0=main_args_.budget_prob_0
                 )

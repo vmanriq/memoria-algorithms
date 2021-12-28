@@ -102,6 +102,7 @@ class SMAC4AC(object):
                  dask_client: Optional[dask.distributed.Client] = None,
                  n_jobs: Optional[int] = 1,
                  opposite_learning_flag: Optional[bool] = False,
+                 filter_thresh: Optional[float] = 0.20,
                  prob_decay: Optional[float] = 0.99, 
                  budget_prob_0: Optional[float] = 10,
                  ):
@@ -337,6 +338,7 @@ class SMAC4AC(object):
             'config_space': scenario.cs,  # type: ignore[attr-defined] # noqa F821
             'rng': rng,
             'opposite_learning_flag': opposite_learning_flag,
+            'filter_thresh': filter_thresh,
         }
         if acquisition_function_optimizer_kwargs is not None:
             acq_func_opt_kwargs.update(acquisition_function_optimizer_kwargs)

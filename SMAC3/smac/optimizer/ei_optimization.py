@@ -198,12 +198,14 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             n_steps_plateau_walk: int = 10,
             vectorization_min_obtain: int = 2,
             vectorization_max_obtain: int = 64,
+            filter_thresh: float = 0.2,
     ):
         super().__init__(acquisition_function, config_space, rng)
         self.max_steps = max_steps
         self.n_steps_plateau_walk = n_steps_plateau_walk
         self.vectorization_min_obtain = vectorization_min_obtain
         self.vectorization_max_obtain = vectorization_max_obtain
+        self.filter_thresh = filter_thresh
 
     def _maximize(
             self,
@@ -243,9 +245,12 @@ class LocalSearch(AcquisitionFunctionMaximizer):
         configs_acq[1].sort(key=lambda x: x[0])
         # threshold
         threshold = float(configs_acq[0][-1][0]) 
-        factor = 0.80
+        print(f"La ultima elegida es {threshold}")
+        factor = 1 - self.filter_thresh
         filtered_descartadas = filter(lambda candidato: self._filter_aux(candidato[0], threshold*factor), configs_acq[1])
         configs_acq[1] = list(filtered_descartadas)
+        if configs_acq[1]:
+            print(f"La primera descaratada es {configs_acq[1][0]}")
         #configs_acq[1][:len_descartadas], configs_acq[1][len_descartadas:] = configs_acq[1][len_descartadas:], configs_acq[1][:len_descartadas] 
         #self.rng.shuffle(configs_acq[1])
 
@@ -645,6 +650,7 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             n_steps_plateau_walk: int = 10,
             n_sls_iterations: int = 10,
             opposite_learning_flag: bool = False,
+            filter_thresh: float = 0.2,
 
     ):
         super().__init__(acquisition_function, config_space, rng)
@@ -658,7 +664,8 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             config_space=config_space,
             rng=rng,
             max_steps=max_steps,
-            n_steps_plateau_walk=n_steps_plateau_walk
+            n_steps_plateau_walk=n_steps_plateau_walk,
+            filter_thresh = filter_thresh,
         )
         self.n_sls_iterations = n_sls_iterations
         self.opposite_learning_flag = opposite_learning_flag
