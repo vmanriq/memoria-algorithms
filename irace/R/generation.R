@@ -120,7 +120,7 @@ sampleModel <- function (parameters, eliteConfigurations, model,
     forbidden.retries <- 0
     while (forbidden.retries < 100) {
       # Choose the elite which will be the parent.
-      if( scenario$OL && (idxConfiguration < floor(0.3/(indexIteration-1) * nbNewConfigurations)) && nrow(eliteConfigurations) > 4) {
+      if( scenario$OL && (idxConfiguration < floor(scenario$generationPercentage/(indexIteration-1) * nbNewConfigurations)) && nrow(eliteConfigurations) > 4) {
         indexEliteParent <- 5
       }
       else {
