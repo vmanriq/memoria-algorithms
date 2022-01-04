@@ -1,13 +1,12 @@
 import subprocess
 import random 
 import os
-
+import sys 
 
 
 SEED = 3
 NUMBER_OF_SEEDS = 10
-ALGORITHM = '/home/manriq/Documents/universidad/TT/tunners/SMAC3/algorithms/ak/target_algorithm/AK'
-INSTANCE_FOLDER = '/home/manriq/Documents/universidad/TT/tunners/SMAC3/algorithms/instances/testing/testingHard'
+
 
 random.seed(SEED)
 
@@ -45,11 +44,12 @@ def evaluate_params(algorithm, instance_folder, seeds_number, params):
     print(resumen)
     return resumen
 
+#example cal python evaluate_smac.py /ak/target_algorithm/AK testingEasy
 
+algorithm_path, instances_type = sys.argv[1:]
 
-#output_smac = exec_smac('smac_algorithm/scripts/smac', 'ilsmkp/scenario.txt ', 1)
-
-#dic_params = params_to_dict(output_smac)
+ALGORITHM =  f"./algorithms/{algorithm_path}"
+INSTANCE_FOLDER = f"./algorithms/instances/testing/{instances_type}"
 
 param_values = [
                 {'alpha': '1.6','ants': '15', 'beta': '7.6', 'ph-max': '6.7', 'ph-min': '0.01', 'rho': '0.1'},
@@ -67,3 +67,7 @@ for params in param_values:
     print("\n\n")
 
 print(resumen_general)
+
+
+print(algorithm_path)
+print(instances_type)
