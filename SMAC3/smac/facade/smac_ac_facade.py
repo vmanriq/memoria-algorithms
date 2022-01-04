@@ -101,6 +101,10 @@ class SMAC4AC(object):
                  random_configuration_chooser_kwargs: Optional[Dict] = None,
                  dask_client: Optional[dask.distributed.Client] = None,
                  n_jobs: Optional[int] = 1,
+                 opposite_learning_flag: Optional[bool] = False,
+                 filter_thresh: Optional[float] = 0.20,
+                 prob_decay: Optional[float] = 0.99, 
+                 budget_prob_0: Optional[float] = 10,
                  ):
         """
         Constructor
@@ -244,7 +248,9 @@ class SMAC4AC(object):
             raise ValueError('runhistory has to be a class or an object of RunHistory')
 
         rand_conf_chooser_kwargs = {
-            'rng': rng
+            'rng': rng,
+            'prob_decay': prob_decay,
+            'budget_prob_0': budget_prob_0,
         }
         if random_configuration_chooser_kwargs is not None:
             rand_conf_chooser_kwargs.update(random_configuration_chooser_kwargs)
@@ -331,6 +337,8 @@ class SMAC4AC(object):
             'acquisition_function': acquisition_function_instance,
             'config_space': scenario.cs,  # type: ignore[attr-defined] # noqa F821
             'rng': rng,
+            'opposite_learning_flag': opposite_learning_flag,
+            'filter_thresh': filter_thresh,
         }
         if acquisition_function_optimizer_kwargs is not None:
             acq_func_opt_kwargs.update(acquisition_function_optimizer_kwargs)
@@ -560,7 +568,7 @@ class SMAC4AC(object):
                 "Argument runhistory2epm must be None or an object implementing the RunHistory2EPM, but is '%s'" %
                 type(runhistory2epm)
             )
-
+        
         smbo_args = {
             'scenario': scenario,
             'stats': self.stats,

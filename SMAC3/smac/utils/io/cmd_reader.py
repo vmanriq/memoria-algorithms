@@ -503,6 +503,12 @@ class CMDReader(object):
         req_opts.add_argument("--psmac_validate",
                               default=False, type=truthy,
                               help="[dev] Validate all psmac configurations.")
+                              
+        req_opts.add_argument("--OL", default=False, type=truthy, help="[dev] activate oposite learning")
+        req_opts.add_argument("--filter", default=0.2, type=float, help="[dev] porcentaje de filtrado para descartadas")
+        req_opts.add_argument("--prob_decay", default=0.99, type=float, help="[dev] decay factor prob")
+        req_opts.add_argument("--budget_prob_0", default=10, type=int, help="[dev] porcentaje utilizado del budget en que la probabilidad de OL es 0")
+
 
         self.main_cmd_actions, self.main_cmd_translations = CMDReader._extract_action_info(self.parser._actions)
 

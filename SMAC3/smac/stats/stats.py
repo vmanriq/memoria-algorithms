@@ -143,6 +143,12 @@ class Stats(object):
         else:
             raise ValueError("Scenario is missing")
 
+    def get_used_ta_budget_percentage(self) -> float:
+        if self.__scenario:
+            return (self.submitted_ta_runs *100)/self.__scenario.ta_run_limit
+        else:
+            raise ValueError('Scenario missing')
+
     def get_remaining_ta_budget(self) -> float:
         """Subtracts the ta running budget with the used time"""
         if self.__scenario:

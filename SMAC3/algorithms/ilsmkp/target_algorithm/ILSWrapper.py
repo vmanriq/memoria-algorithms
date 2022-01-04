@@ -44,8 +44,8 @@ if __name__ == '__main__':
     #argv 6 es el nombre del param
     k = sys.argv[7]
     TOTAL_EVAL = '3000'
-    cmd = ['./target_algorithm/ILSMKP-org', instance, seed, TOTAL_EVAL ,k]
+    cmd = ['./target_algorithm/ILSMKP', instance, seed, TOTAL_EVAL ,k]
     io = Popen(cmd, stdout=PIPE)
     out_, err_ = io.communicate()
     result = out_.decode("utf-8").strip()
-    print(f"Result for SMAC: SUCCESS, -1, -1, -{result}, {seed}")
+    print(f"Result for SMAC: SUCCESS, -1, -1, {result}, {seed}")

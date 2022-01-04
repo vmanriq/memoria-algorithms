@@ -104,7 +104,7 @@ class ChooserLinearCoolDown(RandomConfigurationChooser):
 
 class ChooserProb(RandomConfigurationChooser):
 
-    def __init__(self, rng: np.random.RandomState, prob: float):
+    def __init__(self, rng: np.random.RandomState, prob: float, prob_decay: float, budget_prob_0: int):
         """Interleave a random configuration according to a given probability.
 
         Parameters
@@ -115,15 +115,29 @@ class ChooserProb(RandomConfigurationChooser):
             Random state
         """
         super().__init__(rng)
+        self.prob_sa = 1
+        self.decay = prob_decay
         self.prob = prob
-
-    def next_smbo_iteration(self) -> None:
-        pass
+        self.iteration_count = 0
+        self.budget_prob_0 = budget_prob_0
+    def next_smbo_iteration(self, used_ta_budget_percentage: float) -> None:
+        #print(f"El porcentaje utilizado es {used_ta_budget_percentage} y la probabilidad {self.prob_sa}")
+        #if used_ta_budget_percentage >= self.budget_prob_0:
+          #  self.prob_sa = 0
+        #else:
+         #   self.prob_sa = self.prob_sa * self.decay
+        return 
+    def check_annealing(self) -> bool:
+        self.prob_sa = self.prob_sa * self.decay
+        print(f"La probabilidad de sa es {self.prob_sa}")
+        return self.rng.rand() < self.prob_sa
+         
 
     def check(self, iteration: int) -> bool:
         if self.rng.rand() < self.prob:
             return True
         else:
+            print("Se eligio uno de la cola")
             return False
 
 

@@ -4,7 +4,7 @@ import itertools
 import logging
 import time
 import numpy as np
-
+import numbers
 from typing import List, Union, Tuple, Optional, Set, Iterator, Callable
 
 from smac.configspace import (
@@ -89,15 +89,17 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
         iterable
             An iterable consisting of :class:`smac.configspace.Configuration`.
         """
-        def next_configs_by_acq_value() -> List[Configuration]:
-            return [t[1] for t in self._maximize(runhistory, stats, num_points)]
-
+        def next_configs_by_acq_value() -> List[List[Configuration]]:
+            #return [t[1] for t in self._maximize(runhistory, stats, num_points)]
+            configs, configs_descartadas = self._maximize(runhistory, stats, num_points) 
+            configs = [config[1] for config in configs]
+            configs_descartadas = [config[1] for config in configs_descartadas]
+            return [configs, configs_descartadas]
         challengers = ChallengerList(next_configs_by_acq_value,
                                      self.config_space,
-                                     random_configuration_chooser)
-
+                                     random_configuration_chooser, self.opposite_learning_flag)
         if random_configuration_chooser is not None:
-            random_configuration_chooser.next_smbo_iteration()
+            random_configuration_chooser.next_smbo_iteration(stats.get_used_ta_budget_percentage())
         return challengers
 
     @abc.abstractmethod
@@ -196,12 +198,14 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             n_steps_plateau_walk: int = 10,
             vectorization_min_obtain: int = 2,
             vectorization_max_obtain: int = 64,
+            filter_thresh: float = 0.2,
     ):
         super().__init__(acquisition_function, config_space, rng)
         self.max_steps = max_steps
         self.n_steps_plateau_walk = n_steps_plateau_walk
         self.vectorization_min_obtain = vectorization_min_obtain
         self.vectorization_max_obtain = vectorization_max_obtain
+        self.filter_thresh = filter_thresh
 
     def _maximize(
             self,
@@ -209,7 +213,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             stats: Stats,
             num_points: int,
             additional_start_points: Optional[List[Tuple[float, Configuration]]] = None,
-    ) -> List[Tuple[float, Configuration]]:
+    ) -> List[List[Tuple[float, Configuration]]]:
         """Starts a local search from the given startpoint and quits
         if either the max number of steps is reached or no neighbor
         with an higher improvement was found.
@@ -232,16 +236,31 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         init_points = self._get_initial_points(num_points, runhistory, additional_start_points)
         configs_acq = self._do_search(init_points)
-
         # shuffle for random tie-break
-        self.rng.shuffle(configs_acq)
+        self.rng.shuffle(configs_acq[0])
 
         # sort according to acq value
-        configs_acq.sort(reverse=True, key=lambda x: x[0])
-        for _, inc in configs_acq:
+        configs_acq[0].sort(reverse=True, key=lambda x: x[0])
+        #descartadas
+        configs_acq[1].sort(key=lambda x: x[0])
+        # threshold
+        threshold = float(configs_acq[0][-1][0]) 
+        print(f"La ultima elegida es {threshold}")
+        factor = 1 - self.filter_thresh
+        filtered_descartadas = filter(lambda candidato: self._filter_aux(candidato[0], threshold*factor), configs_acq[1])
+        configs_acq[1] = list(filtered_descartadas)
+        if configs_acq[1]:
+            print(f"La primera descaratada es {configs_acq[1][0]}")
+        #configs_acq[1][:len_descartadas], configs_acq[1][len_descartadas:] = configs_acq[1][len_descartadas:], configs_acq[1][:len_descartadas] 
+        #self.rng.shuffle(configs_acq[1])
+
+        for _, inc in configs_acq[0]:
             inc.origin = 'Local Search'
 
         return configs_acq
+    
+    def _filter_aux(self, value, range):
+        return bool(value > range)
 
     def _get_initial_points(
         self,
@@ -347,6 +366,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             local_search_steps[i] += 1
         # Keeping track of configurations with equal acquisition value for plateau walking
         neighbors_w_equal_acq = [[] for _ in range(num_candidates)]  # type: List[List[Configuration]]
+        soluciones_descartadas = []
 
         num_iters = 0
         while np.any(active):
@@ -426,6 +446,14 @@ class LocalSearch(AcquisitionFunctionMaximizer):
                             # Found an equally well performing configuration, keeping it for plateau walking
                             elif acq_val[acq_index] == acq_val_candidates[i]:
                                 neighbors_w_equal_acq[i].append(neighbors[acq_index])
+                            
+                            ## solucion de peor calidad que el actual
+                            elif acq_val[acq_index] < acq_val_candidates[i]:
+                                try:
+                                    neighbors[acq_index].is_valid_configuration()
+                                    soluciones_descartadas.append((acq_val[acq_index] ,neighbors[acq_index]))
+                                except (ValueError, ForbiddenValueError) as e:
+                                    self.logger.debug("Local search peor calidad %d: %s", i, e)
 
                             acq_index += 1
 
@@ -459,8 +487,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             "vectorized for took %f seconds on average.",
             local_search_steps, neighbors_looked_at, np.mean(times),
         )
-
-        return [(a, i) for a, i in zip(acq_val_candidates, candidates)]
+        return [[(a, i) for a, i in zip(acq_val_candidates, candidates)],soluciones_descartadas]
 
 
 class DiffOpt(AcquisitionFunctionMaximizer):
@@ -621,7 +648,9 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             rng: Union[bool, np.random.RandomState] = None,
             max_steps: Optional[int] = None,
             n_steps_plateau_walk: int = 10,
-            n_sls_iterations: int = 10
+            n_sls_iterations: int = 10,
+            opposite_learning_flag: bool = False,
+            filter_thresh: float = 0.2,
 
     ):
         super().__init__(acquisition_function, config_space, rng)
@@ -635,16 +664,18 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             config_space=config_space,
             rng=rng,
             max_steps=max_steps,
-            n_steps_plateau_walk=n_steps_plateau_walk
+            n_steps_plateau_walk=n_steps_plateau_walk,
+            filter_thresh = filter_thresh,
         )
         self.n_sls_iterations = n_sls_iterations
+        self.opposite_learning_flag = opposite_learning_flag
 
     def _maximize(
         self,
         runhistory: RunHistory,
         stats: Stats,
         num_points: int,
-    ) -> List[Tuple[float, Configuration]]:
+    ) -> List[List[Tuple[float, Configuration]]]:
 
         # Get configurations sorted by EI
         next_configs_by_random_search_sorted = self.random_search._maximize(
@@ -654,10 +685,9 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             _sorted=True,
         )
 
-        next_configs_by_local_search = self.local_search._maximize(
+        next_configs_by_local_search, configurationes_descartadas = self.local_search._maximize(
             runhistory, stats, self.n_sls_iterations, additional_start_points=next_configs_by_random_search_sorted,
         )
-
         # Having the configurations from random search, sorted by their
         # acquisition function value is important for the first few iterations
         # of SMAC. As long as the random forest predicts constant value, we
@@ -672,7 +702,7 @@ class LocalAndSortedRandomSearch(AcquisitionFunctionMaximizer):
             "First 5 acq func (origin) values of selected configurations: %s",
             str([[_[0], _[1].origin] for _ in next_configs_by_acq_value[:5]])
         )
-        return next_configs_by_acq_value
+        return [next_configs_by_acq_value, configurationes_descartadas]
 
 
 class ChallengerList(Iterator):
@@ -698,31 +728,43 @@ class ChallengerList(Iterator):
         challenger_callback: Callable,
         configuration_space: ConfigurationSpace,
         random_configuration_chooser: Optional[RandomConfigurationChooser] = ChooserNoCoolDown(2.0),
+        opposite_learning_flag: bool = False,
     ):
         self.challengers_callback = challenger_callback
         self.challengers = None  # type: Optional[List[Configuration]]
+        self.descartadas = None
         self.configuration_space = configuration_space
         self._index = 0
         self._iteration = 1  # 1-based to prevent from starting with a random configuration
         self.random_configuration_chooser = random_configuration_chooser
+        self.OL = opposite_learning_flag
 
     def __next__(self) -> Configuration:
+        print(self._iteration)
         if self.challengers is not None and self._index == len(self.challengers):
             raise StopIteration
         elif self.random_configuration_chooser is None:
             if self.challengers is None:
-                self.challengers = self.challengers_callback()
+                self.challengers, self.descartadas = self.challengers_callback()
+                self.descartadas = iter(self.descartadas)
             config = self.challengers[self._index]
             self._index += 1
             return config
         else:
-            if self.random_configuration_chooser.check(self._iteration):
+            if self.descartadas != None and self.OL and self.random_configuration_chooser.check_annealing():
+                config = next(self.descartadas)
+                config.origin = 'Descartada'
+                print('se utiliza una descartada')
+            elif self.random_configuration_chooser.check(self._iteration) and not self.OL:
                 config = self.configuration_space.sample_configuration()
                 config.origin = 'Random Search'
+                print('se utiliza una random')
             else:
                 if self.challengers is None:
-                    self.challengers = self.challengers_callback()
+                    self.challengers, self.descartadas = self.challengers_callback()
+                    self.descartadas = iter(self.descartadas)
                 config = self.challengers[self._index]
+                print('se utiliza una de Local Search')
                 self._index += 1
             self._iteration += 1
             return config
