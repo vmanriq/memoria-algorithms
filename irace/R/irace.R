@@ -1133,7 +1133,7 @@ irace <- function(scenario, parameters)
     iraceResults$iterationElites <- c(iraceResults$iterationElites, eliteConfigurations$.ID.[1])
     iraceResults$allElites[[indexIteration]] <- eliteConfigurations$.ID.
     
-    oppositeConfig <- selectOpposite(eliteConfigurations, raceResults$configurations)
+    oppositeConfig <- selectOpposite(eliteConfigurations, raceResults$configurations, scenario$filterThresh)
 
     if (firstRace) {
       if (debugLevel >= 1)  { irace.note("Initialise model\n") }

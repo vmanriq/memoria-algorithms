@@ -4,12 +4,22 @@
 #
 #OUTPUT: configuraciones elite + configuracion descartada seleccionada 
 
-selectOpposite <- function(elites, allConfigs) {
+selectOpposite <- function(elites, allConfigs, filterThresh) {
+  if(is.null(filterThresh)){
+    filter <- 1.5
+  }
+  else {
+    filter <- 1 + filterThresh
+  }
   dropped <- allConfigs[-(1:nrow(elites)), , drop=FALSE]
   dropped <- allConfigs[allConfigs$.ALIVE. == TRUE, , drop=FALSE]
+  print("La cantidad de dropeadas antes del filtrado es ")
+  print(nrow(dropped))
   lastEliteValue <- tail(elites, 1)$.RANK.
-  threshold <- lastEliteValue * 1.5
+  threshold <- lastEliteValue * filter
   filteredDropped <- dropped[allConfigs$.RANK. < threshold, , drop=FALSE]
+  print("La cantidad de dropeadas despues del filtrado es ")
+  print(nrow(filteredDropped))
   selectedConfig <- filteredDropped[sample(1:nrow(filteredDropped), 1), , drop=FALSE]
   selectedConfig$.WEIGHT. <- 0
   return (selectedConfig)
