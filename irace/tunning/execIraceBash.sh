@@ -8,9 +8,10 @@ scenario_name=$5
 oppositeFlag=$6
 nameinstances=$7
 generationPercentage=$8
+filterThresh=$9
 
 
 for i in $(eval echo {$iter_lower..$iter_upper})
 do 
-    R < iraceRun.R --no-save --args $i $algorithm_folder $scenario_name $oppositeFlag $nameinstances $generationPercentage > ${name_file}_${i}.txt
+    R < iraceRun.R --no-save --args $i $algorithm_folder $scenario_name $oppositeFlag $nameinstances $generationPercentage $filterThresh > ${name_file}_${i}.txt
 done

@@ -1,4 +1,4 @@
-# R < iraceRun.R --no-save --args 10 ./ak scenario.txt TRUE trainInstancesHARD.txt 0.3
+# R < iraceRun.R --no-save --args 10 ./ak scenario.txt TRUE trainInstancesHARD.txt 0.3 0.2
 # se necesita estar parado en la carpeta  tunners/irace/tunning
 library('irace')
 library('devtools')
@@ -16,5 +16,6 @@ scenario$seed <- seed
 scenario$OL <- as.logical(args[7])
 scenario$trainInstancesFile <- args[8]
 scenario$generationPercentage <- args[9]
+scenario$filterThresh <- args[10]
 irace.main(scenario = scenario)
 
