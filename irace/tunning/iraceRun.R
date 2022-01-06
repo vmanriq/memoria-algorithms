@@ -15,7 +15,7 @@ scenario <- readScenario(filename = args[6])
 scenario$seed <- seed
 scenario$OL <- as.logical(args[7])
 scenario$trainInstancesFile <- args[8]
-scenario$generationPercentage <- args[9]
-scenario$filterThresh <- args[10]
+scenario$generationPercentage <- as.double(args[9])
+scenario$filterThresh <- as.double(args[10])
 irace.main(scenario = scenario)
 
