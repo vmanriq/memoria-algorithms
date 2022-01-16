@@ -1,0 +1,6 @@
+./instances/a280.tsp
+./instances/ali535.tsp
+./instances/att48.tsp
+./instances/att532.tsp
+./instances/d1291.tsp
+./instances/d1655.tsp
