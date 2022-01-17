@@ -47,7 +47,8 @@ class Stats(object):
         self.wallclock_time_used = 0.0
         self.ta_time_used = 0.0
         self.inc_changed = 0
-
+        self.descartada_usage = 0
+        self.challenger_ask = 0
         # debug stats
         self._n_configs_per_intensify = 0
         self._n_calls_of_intensify = 0
@@ -220,5 +221,6 @@ class Stats(object):
                 self._n_configs_per_intensify / self._n_calls_of_intensify))
             self._logger.debug("Exponential Moving Average of Configurations per Intensify: %.2f" % (
                 self._ema_n_configs_per_intensifiy))
-
+        log_func(f"Se probaron {self.challenger_ask} configuraciones")
+        log_func(f"Se utilizaron {self.descartada_usage}")
         log_func("##########################################################")
