@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+from os import stat
 
 import numpy as np
 
@@ -127,8 +128,14 @@ class ChooserProb(RandomConfigurationChooser):
         #else:
          #   self.prob_sa = self.prob_sa * self.decay
         return 
-    def check_annealing(self) -> bool:
-        self.prob_sa = self.prob_sa * self.decay
+    def check_annealing(self, stats) -> bool:
+        print(f"El budget utilizado es {stats.get_used_ta_budget_percentage()}")
+        #if stats.get_used_ta_budget_percentage() < 10 and self.prob_sa < 0.1:
+        #    print("Reheat")
+        #    self.prob_sa = 1
+        #else:
+        if not stats.challenger_ask % 10: 
+            self.prob_sa = self.prob_sa * self.decay
         print(f"La probabilidad de sa es {self.prob_sa}")
         return self.rng.rand() < self.prob_sa
          

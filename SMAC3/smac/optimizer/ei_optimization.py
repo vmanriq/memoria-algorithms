@@ -97,7 +97,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
             return [configs, configs_descartadas]
         challengers = ChallengerList(next_configs_by_acq_value,
                                      self.config_space,
-                                     random_configuration_chooser, self.opposite_learning_flag)
+                                     random_configuration_chooser, self.opposite_learning_flag, stats)
         if random_configuration_chooser is not None:
             random_configuration_chooser.next_smbo_iteration(stats.get_used_ta_budget_percentage())
         return challengers
@@ -729,6 +729,7 @@ class ChallengerList(Iterator):
         configuration_space: ConfigurationSpace,
         random_configuration_chooser: Optional[RandomConfigurationChooser] = ChooserNoCoolDown(2.0),
         opposite_learning_flag: bool = False,
+        stats: Optional[Stats] = Stats,
     ):
         self.challengers_callback = challenger_callback
         self.challengers = None  # type: Optional[List[Configuration]]
@@ -738,9 +739,11 @@ class ChallengerList(Iterator):
         self._iteration = 1  # 1-based to prevent from starting with a random configuration
         self.random_configuration_chooser = random_configuration_chooser
         self.OL = opposite_learning_flag
+        self.stats = stats
 
     def __next__(self) -> Configuration:
         print(self._iteration)
+        self.stats.challenger_ask += 1
         if self.challengers is not None and self._index == len(self.challengers):
             raise StopIteration
         elif self.random_configuration_chooser is None:
@@ -751,8 +754,9 @@ class ChallengerList(Iterator):
             self._index += 1
             return config
         else:
-            if self.descartadas != None and self.OL and self.random_configuration_chooser.check_annealing():
+            if self.descartadas != None and self.OL and self.random_configuration_chooser.check_annealing(self.stats):
                 config = next(self.descartadas)
+                self.stats.descartada_usage += 1
                 config.origin = 'Descartada'
                 print('se utiliza una descartada')
             elif self.random_configuration_chooser.check(self._iteration) and not self.OL:
