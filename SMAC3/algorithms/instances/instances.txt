@@ -1,4 +1,0 @@
-../instances/training/gk01.dat
-../instances/training/pet7.dat
-../instances/training/weish27.dat
-../instances/training/weing8.dat

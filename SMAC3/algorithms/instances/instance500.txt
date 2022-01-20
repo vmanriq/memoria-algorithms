@@ -1,4 +1,0 @@
-../instances/training/OR5x500-0.25_2.dat
-../instances/training/OR5x500-0.25_6.dat
-../instances/training/OR5x500-0.25_8.dat
-../instances/training/gk01.dat
